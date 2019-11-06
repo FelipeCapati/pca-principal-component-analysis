@@ -7,4 +7,8 @@ data = np.array([
 ])
 
 pca = PCA()
-print(pca.fit(data=data, pcaType=PcaType.Two))
+pca.fit(data=data, pcaType=PcaType.Two)
+pca.explained_variance_ratio()
+pca.get_covariance()
+pca.singular_values()
+pca.transform(data=data, variables=None)
