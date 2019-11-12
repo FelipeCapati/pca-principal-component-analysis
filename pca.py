@@ -83,6 +83,11 @@ class PCA:
     def transform(self, data: np.array, n_components:int):
         for i in range(0,n_components):
             eVector = self.array_training[i][1]
+<<<<<<< HEAD
+=======
+            print(data)
+            print(eVector.reshape(-1,1))
+>>>>>>> d170f037b08fef7e682fb099a9630fd2334c2808
             pca = np.dot(data.transpose(),eVector).reshape(1,-1)
             if i==0:
                 response = pca.T
