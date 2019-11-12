@@ -15,6 +15,7 @@ class PCA:
         self.eigenvalues = None
         self.eigenvectors = None
         self.covariance = None
+        self.array_training = None
 
     @staticmethod
     def __get_mean(data: np.array) -> np.array:
@@ -34,7 +35,7 @@ class PCA:
     
     @staticmethod
     def __get_eigenvalues_and_eigenvectors(data: np.array) -> np.array:
-        eigenvalues, eigenvectors = LA.eig(data)
+        eigenvalues, eigenvectors = np.linalg.eig(data)
         return [eigenvalues, eigenvectors]
 
     def __verify_default_error_when_execute_before_fit(self):
@@ -42,10 +43,11 @@ class PCA:
             raise Exception("The method fit have to execute before than this method")
 
     def __subtract_the_mean(self, data: np.array) -> np.array:
-        mean = self.__get_mean(data=data)
-        for i in range(len(data)):
-            data[i] = data[i] - mean[i]
-        return data
+        data_copy = np.copy(data)
+        mean = self.__get_mean(data=data_copy)
+        for i in range(len(data_copy)):
+            data_copy[i] = data_copy[i] - mean[i]
+        return data_copy
 
     def explained_variance_ratio(self) -> np.array:
         self.__verify_default_error_when_execute_before_fit()
@@ -68,26 +70,23 @@ class PCA:
     def fit(self, data: np.array, pcaType: PcaType = PcaType.Two):
         data_sub_mean = self.__subtract_the_mean(data=data)
         self.covariance = self.__get_covariance_matrix(data=data_sub_mean)
-        [eigenvalues, eigenvectors] = self.__get_eigenvalues_and_eigenvectors(data=self.covariance)
+        [self.eigenvalues, self.eigenvectors] = self.__get_eigenvalues_and_eigenvectors(data=self.covariance)
 
-        self.eigenvalues = eigenvalues
-        self.eigenvectors = eigenvectors
+        array_training = [(np.abs(self.eigenvalues[i]),self.eigenvectors[:,i]) for i in range(len(self.eigenvalues))]
+        array_training.sort(key=lambda x: x[0], reverse=True)
+
+        self.array_training = array_training
 
         print("PCA Values: %s" %self.eigenvalues)
         self.fit_run = True
     
-    def transform(self, data: np.array, variables:np.array):
-        self.__verify_default_error_when_execute_before_fit()
+    def transform(self, data: np.array, n_components:int):
+        for i in range(0,n_components):
+            eVector = self.array_training[i][1]
+            pca = np.dot(data.transpose(),eVector).reshape(1,-1)
+            if i==0:
+                response = pca.T
+            else:
+                response = np.dstack((response,pca.T))
 
-        variables_length = len(self.eigenvalues)
-        response = np.array([])
-
-        if(variables == None):
-            variables = np.arange(variables_length)
-
-        for i in range(len(data)):
-            for j in range(len(variables)):
-                # response = np.append(response, np.sum(self.eigenvectors[j].transpose() * data.transpose(), axis=1), axis=0)
-                # print(response)
-                response = np.append(response, np.sum(self.eigenvectors[j].transpose() * data.transpose(), axis=1), axis=0)
-                print(response)
+        return response.reshape(-1,n_components)
