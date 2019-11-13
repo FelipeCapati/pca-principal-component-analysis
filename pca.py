@@ -1,6 +1,8 @@
 from utilities.matrix import Matrix
 import numpy as np
 from numpy import linalg as LA
+from sympy.solvers import solve
+from sympy import Symbol
 from enum import Enum
 
 
@@ -16,6 +18,11 @@ class PCA:
         self.eigenvectors = None
         self.covariance = None
         self.array_training = None
+
+    @staticmethod
+    def __get_eigenvalues_for_matrix_2x2(data: np.array) -> np.array:
+        x = Symbol('x')
+        return solve((data[0][0]-x)*(data[1][1]-x)-data[0][1]*data[1][0], x)
 
     @staticmethod
     def __get_mean(data: np.array) -> np.array:
